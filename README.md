@@ -2,7 +2,8 @@
 
 Инструмент для офлайн-мероприятий быстрых знакомств: участники анонимно отмечают симпатии, после закрытия голосования видят только **взаимные мэтчи**. Односторонние симпатии никому не раскрываются.
 
-**Репозиторий:** https://github.com/make-smart-products/speed-match
+**Репозиторий:** https://github.com/make-smart-products/speed-match  
+**Демо (Render):** https://speed-match-iw5t.onrender.com
 
 ## Стек
 
@@ -20,26 +21,45 @@ docker compose up --build
 
 Данные сохраняются в Docker volume `speedmatch-data`.
 
-## Локальная разработка
+## Локальный запуск без Docker
 
-### Backend
+### Вариант A: разработка (hot reload фронтенда)
+
+Два терминала:
 
 ```bash
+# Терминал 1 — API
 cd backend
 go run ./cmd/server
-```
 
-API: `http://localhost:8080/api/v1`
-
-### Frontend (с hot reload)
-
-```bash
+# Терминал 2 — фронтенд
 cd web
 npm install
 npm run dev
 ```
 
-UI: `http://localhost:5173` (прокси `/api` и `/uploads` на backend)
+- API: `http://localhost:8080/api/v1`
+- UI: `http://localhost:5173` (прокси `/api` и `/uploads` на backend)
+
+### Вариант B: как на проде (один порт)
+
+```bash
+cd web && npm ci && npm run build
+cd ../backend && go build -o bin/server ./cmd/server
+```
+
+**Linux / macOS:**
+```bash
+STATIC_DIR=../web/dist ./bin/server
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:STATIC_DIR="../web/dist"
+.\bin\server.exe
+```
+
+Откройте **http://localhost:8080**.
 
 ### Демо-данные
 
@@ -48,14 +68,18 @@ cd backend
 go run ./cmd/seed
 ```
 
+Команда выведет ссылки организатора и участников.
+
 ## Сценарий организатора
 
 1. Откройте `/admin/new`
 2. Создайте мероприятие (название, опциональный лимит симпатий)
 3. Добавьте участников (псевдоним + опциональное фото)
 4. Раздайте персональные QR-ссылки
-5. Нажмите **«Открыть голосование»**
+5. Нажмите **«Открыть голосование»** (нужно минимум 2 участника)
 6. После мероприятия — **«Закрыть голосование»**
+
+Ссылка на панель организатора: `/admin/{slug}?key={admin_token}`
 
 ## Сценарий участника
 
@@ -66,11 +90,13 @@ go run ./cmd/seed
 
 ## Деплой в облако (Render)
 
-1. Форкните или подключите репозиторий на [Render](https://render.com)
-2. **New → Blueprint** и укажите `render.yaml` из репозитория  
+1. Подключите репозиторий на [Render](https://render.com)
+2. **New → Blueprint** и укажите `render.yaml`  
    или **New → Web Service → Docker** с этим репозиторием
-3. Подключите **Persistent Disk** на `/data` (1 GB) — для БД и фото
-4. После деплоя откройте выданный URL (например `https://speed-match.onrender.com`)
+3. Persistent Disk на `/data` (1 GB) — для БД и фото (уже в `render.yaml`)
+4. Автодеплой при push в `main`
+
+**Передеплой вручную:** Render Dashboard → сервис → **Manual Deploy → Deploy latest commit**
 
 Health check: `GET /health`
 
@@ -95,16 +121,8 @@ Health check: `GET /health`
 | `PORT` | `8080` | Порт сервера |
 | `DB_PATH` | `data/speedmatch.db` | Путь к SQLite |
 | `UPLOAD_DIR` | `uploads` | Папка для фото |
-| `STATIC_DIR` | `../web/dist` | Статика фронтенда |
+| `STATIC_DIR` | `../web/dist` | Статика фронтенда (prod) |
 | `CORS_ORIGIN` | `*` в prod | Origin для CORS |
-
-## Production (без Docker)
-
-```bash
-cd web && npm ci && npm run build
-cd ../backend && go build -o bin/server ./cmd/server
-STATIC_DIR=../web/dist DB_PATH=data/speedmatch.db ./bin/server
-```
 
 ## Безопасность
 
@@ -113,3 +131,13 @@ STATIC_DIR=../web/dist DB_PATH=data/speedmatch.db ./bin/server
 - Голоса только при `status=voting`
 - Мэтчи только при `status=closed`
 - Фото: JPEG/PNG, max 2 МБ
+
+## Make-команды
+
+```bash
+make docker    # docker compose up --build
+make backend   # go run ./cmd/server
+make frontend  # npm run dev
+make build     # собрать web + backend
+make seed      # демо-данные
+```
