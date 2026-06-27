@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api, getAdminToken, saveAdminToken } from '../api/client'
 import type { AdminEventResponse } from '../api/types'
@@ -27,17 +27,23 @@ export function AdminEventPage() {
     if (keyFromUrl && slug) saveAdminToken(slug, keyFromUrl)
   }, [keyFromUrl, slug])
 
-  function load() {
-    if (!slug || !adminToken) return
+  const load = useCallback(() => {
+    if (!slug || !adminToken) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
+    setError(null)
     api
       .getAdminEvent(slug, adminToken)
       .then(setData)
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
-  }
+  }, [slug, adminToken])
 
-  useEffect(load, [slug, adminToken])
+  useEffect(() => {
+    load()
+  }, [load])
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault()

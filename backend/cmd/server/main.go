@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/make-smart-products/speed-match/internal/config"
 	"github.com/make-smart-products/speed-match/internal/db"
 	"github.com/make-smart-products/speed-match/internal/handler"
 	"github.com/make-smart-products/speed-match/internal/middleware"
 	"github.com/make-smart-products/speed-match/internal/repository"
 	"github.com/make-smart-products/speed-match/internal/service"
-	"github.com/go-chi/chi/v5"
-	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/pressly/goose/v3"
 )
 
@@ -56,7 +56,9 @@ func main() {
 	})
 
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.UploadDir))))
-	r.Mount("/", h.Routes(middleware.RateLimit(10)))
+
+	// API routes only under /api/v1 — do NOT mount at "/" or SPA paths break.
+	h.RegisterRoutes(r, middleware.RateLimit(10))
 
 	staticDir := resolveStaticDir(cfg.StaticDir)
 	if staticDir != "" {

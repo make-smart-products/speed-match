@@ -29,9 +29,7 @@ func New(events *service.EventService, uploadDir string) *Handler {
 	return &Handler{events: events, uploadDir: uploadDir}
 }
 
-func (h *Handler) Routes(voteRateLimit func(http.Handler) http.Handler) chi.Router {
-	r := chi.NewRouter()
-
+func (h *Handler) RegisterRoutes(r chi.Router, voteRateLimit func(http.Handler) http.Handler) {
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Get("/events/{slug}/status", h.GetStatus)
 		api.Get("/events/{slug}/participants", h.GetParticipants)
@@ -43,8 +41,6 @@ func (h *Handler) Routes(voteRateLimit func(http.Handler) http.Handler) chi.Rout
 		api.Post("/admin/events/{slug}/participants", h.AddParticipant)
 		api.Patch("/admin/events/{slug}", h.PatchEvent)
 	})
-
-	return r
 }
 
 func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
