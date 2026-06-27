@@ -5,12 +5,12 @@ RUN npm ci
 COPY web/ ./
 RUN npm run build
 
-FROM golang:1.23-alpine AS backend
+FROM golang:1.26-alpine AS backend
 WORKDIR /app/backend
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 COPY backend/ ./
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /server ./cmd/server
+RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /server ./cmd/server
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates wget
