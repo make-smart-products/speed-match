@@ -94,7 +94,8 @@ export function AdminEventPage() {
     return <p className="py-12 text-center text-red-600">{error || 'Событие не найдено'}</p>
   }
 
-  const { event, participants } = data
+  const { event, participants: rawParticipants } = data
+  const participants = rawParticipants ?? []
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">

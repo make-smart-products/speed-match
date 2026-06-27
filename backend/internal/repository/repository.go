@@ -86,13 +86,20 @@ func (r *Repository) CreateParticipant(p *models.Participant) error {
 	return err
 }
 
+func emptySlice[T any](s []T) []T {
+	if s == nil {
+		return []T{}
+	}
+	return s
+}
+
 func (r *Repository) ListParticipants(eventID string) ([]models.Participant, error) {
 	var list []models.Participant
 	err := r.db.Select(&list, `
 		SELECT id, event_id, pseudonym, photo_url, access_token
 		FROM participants WHERE event_id = ? ORDER BY pseudonym
 	`, eventID)
-	return list, err
+	return emptySlice(list), err
 }
 
 func (r *Repository) ListOtherParticipants(eventID, selfID string) ([]models.Participant, error) {
@@ -101,13 +108,13 @@ func (r *Repository) ListOtherParticipants(eventID, selfID string) ([]models.Par
 		SELECT id, event_id, pseudonym, photo_url
 		FROM participants WHERE event_id = ? AND id != ? ORDER BY pseudonym
 	`, eventID, selfID)
-	return list, err
+	return emptySlice(list), err
 }
 
 func (r *Repository) GetVotesByVoter(voterID string) ([]string, error) {
 	var ids []string
 	err := r.db.Select(&ids, `SELECT target_id FROM votes WHERE voter_id = ?`, voterID)
-	return ids, err
+	return emptySlice(ids), err
 }
 
 func (r *Repository) ReplaceVotes(eventID, voterID string, targetIDs []string) error {
@@ -144,7 +151,7 @@ func (r *Repository) ListMatches(voterID, eventID string) ([]models.Participant,
 		WHERE v1.voter_id = ? AND v1.event_id = ?
 		ORDER BY p.pseudonym
 	`, voterID, eventID)
-	return list, err
+	return emptySlice(list), err
 }
 
 func (r *Repository) CountParticipantsInEvent(eventID string, ids []string) (int, error) {
