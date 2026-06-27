@@ -1,0 +1,25 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: speed-match
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /health
+    disk:
+      name: speedmatch-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: DB_PATH
+        value: /data/speedmatch.db
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: STATIC_DIR
+        value: /app/web/dist
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: ENV
+        value: production

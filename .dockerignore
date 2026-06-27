@@ -1,0 +1,12 @@
+node_modules
+web/dist
+web/node_modules
+backend/bin
+backend/data
+backend/uploads/*
+!backend/uploads/.gitkeep
+**/*.db
+.git
+.env
+*.md
+!README.md

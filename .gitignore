@@ -1,0 +1,21 @@
+# Dependencies
+backend/bin/
+backend/data/
+backend/**/data/
+backend/uploads/*
+!backend/uploads/.gitkeep
+web/node_modules/
+web/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+.env.local
